@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Currency Converter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    .input-container {
+      margin-bottom: 10px;
+    }
+
+    label {
+      display: inline-block;
+      width: 150px;
+    }
+
+    select,
+    input[type="number"] {
+      width: 200px;
+      padding: 5px;
+    }
+
+    button {
+      padding: 8px 20px;
+      background-color: #4285F4;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .result-container {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <h1>Currency Converter</h1>
+
+  <div class="input-container">
+    <label for="sourceCurrency">Source Currency:</label>
+    <select id="sourceCurrency">
+      <option value="GBP">GBP (UK pound)</option>
+      <option value="USD">USD (US dollar)</option>
+      <!-- Add other currency options -->
+    </select>
+  </div>
+
+  <div class="input-container">
+    <label for="destinationCurrency">Destination Currency:</label>
+    <select id="destinationCurrency">
+      <option value="MYR">MYR (Malaysian Ringgit)</option>
+      <option value="EUR">EUR (Euro)</option>
+      <!-- Add other currency options -->
+    </select>
+  </div>
+
+  <div class="input-container">
+    <label for="amount">Amount:</label>
+    <input type="number" id="amount" placeholder="Enter amount">
+  </div>
+
+  <button onclick="convertCurrency()">Convert</button>
+
+  <div id="result" class="result-container"></div>
+
+  <script>
+    function convertCurrency() {
+      const sourceCurrency = document.getElementById('sourceCurrency').value;
+      const destinationCurrency = document.getElementById('destinationCurrency').value;
+      const amount = parseFloat(document.getElementById('amount').value);
+
+      if (isNaN(amount) || amount <= 0) {
+        document.getElementById('result').innerHTML = '<p>Please enter a valid amount.</p>';
+        return;
+      }
+
+      fetch(`https://www.floatrates.com/daily/${sourceCurrency.toLowerCase()}.json`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          const exchangeRate = data[destinationCurrency.toLowerCase()].rate || 0;
+          const currentDate = new Date().toLocaleDateString('en-GB');
+          const lastUpdateDate = data.date || 'N/A';
+
+          const convertedAmount = amount * exchangeRate;
+
+          const resultHTML = `
+            <p>Source currency: ${sourceCurrency}</p>
+            <p>Destination currency: ${destinationCurrency}</p>
+            <p>Current Exchange Rate: 1 ${sourceCurrency} = ${exchangeRate} ${destinationCurrency}</p>
+            <p>Calculation Timestamp: ${currentDate}</p>
+            <p>Date of Last Exchange Rate Update: ${lastUpdateDate}</p>
+            <p>Amount of transaction: ${amount} ${sourceCurrency} = ${convertedAmount.toFixed(3)} ${destinationCurrency}</p>
+          `;
+
+          document.getElementById('result').innerHTML = resultHTML;
+        })
+        .catch(error => {
+          console.error('There was a problem fetching the data:', error);
+          document.getElementById('result').innerHTML = '<p>Failed to fetch data. Please try again later.</p>';
+        });
+    }
+  </script>
+</body>
+</html>
